@@ -1,0 +1,1069 @@
+{
+  "swagger": "2.0",
+  "host": "grow.thingful.net",
+  "basePath": "/api",
+  "schemes": [
+    "https"
+  ],
+  "info": {
+    "version": "0.1.0",
+    "title": "Thingful GROW Node REST API",
+    "contact": {
+      "name": "Marco",
+      "url": "https://thingful.net/site/contact/",
+      "email": "dev@thingful.net"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "x-logo": {
+      "url": "",
+      "backgroundColor": "#0033A0"
+    },
+    "description": "<p>The Thingful GROW Node API is a RESTful API built according to the HydroNet4 standards.</p>\n\n<p><b>Clients must be authenticated in order to access the API.<br /> Please contact dev@thingful.net or marco@thingful.net to request an API key.</b></p>\n<p>Base URL: https://grow.thingful.net/api</p>\n"
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "description": "The Authorization header requires its value to be set to `Bearer ` followed by the API key.",
+      "in": "header",
+      "name": "Authorization"
+    }
+  },
+  "paths": {
+    "/entity/dataSourceVariables/get": {
+      "post": {
+        "summary": "List data sources variables metadata",
+        "description": "This action returns metadata (identifiers, units, data types) about the available data sources or data channels captured by the Node.",
+        "tags": [
+          "Data Source Variables"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/DataSourceVar"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error500"
+            }
+          }
+        }
+      }
+    },
+    "/entity/locations/get": {
+      "post": {
+        "summary": "List the available sensors location",
+        "description": "This action returns the sensors locations, optionally filtered by the senson(s) owner.",
+        "tags": [
+          "Locations"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "dataSourceCodes",
+            "schema": {
+              "type": "object",
+              "required": [
+                "DataSourceCodes"
+              ],
+              "properties": {
+                "DataSourceCodes": {
+                  "$ref": "#/definitions/DataSourceCodes"
+                },
+                "UserId": {
+                  "type": "string",
+                  "description": "The optional user identifier",
+                  "example": "foobar123"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Locations": {
+                  "type": "object",
+                  "properties": {
+                    "Grow.Thingful#zg9xr321": {
+                      "$ref": "#/definitions/Location"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error400"
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity",
+            "schema": {
+              "$ref": "#/definitions/Error422"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error500"
+            }
+          }
+        }
+      }
+    },
+    "/entity/locations/update": {
+      "patch": {
+        "summary": "Update sensor location",
+        "description": "This action updates an existing sensor latitude and longitude parameters according to the values set in the request body. Once location is updated new measurements collected from the sensor will be associated with the new latitude and longitude values. Existing measurements will not be affected.",
+        "tags": [
+          "Locations"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Location"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error400"
+            }
+          },
+          "404": {
+            "description": "Sensor not found",
+            "schema": {
+              "$ref": "#/definitions/Error404"
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity",
+            "schema": {
+              "$ref": "#/definitions/Error422"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error500"
+            }
+          }
+        }
+      }
+    },
+    "/entity/timeSeriesInformations/get": {
+      "post": {
+        "summary": "List measurements metadata for the available sensors",
+        "description": "This action returns information about the time range of the data available for each sensor by specifing a start and an end date. It is manly used by GROW internal services as a way to describe what data is accessible to client applications.",
+        "tags": [
+          "Measurements"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/TimeSeriesInfo"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error500"
+            }
+          }
+        }
+      }
+    },
+    "/timeSeries/get": {
+      "post": {
+        "summary": "Get sensor data",
+        "description": "This action returns data from sensor(s) specified in the request body. Requests must define a time range by specifying beginning and end UTC timestamp in the yyyymmddHHMMSS format. Currently time ranges are limited to a maximum of 10 days per request. Data samples are returned in descending order (from the most recent to the oldest one) unless otherwise specified.",
+        "tags": [
+          "Measurements"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "timeSeriesData",
+            "description": "the object describing the data to retrieve",
+            "schema": {
+              "$ref": "#/definitions/TimeSeriesDataReq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Data": {
+                  "$ref": "#/definitions/TimeSeriesData"
+                },
+                "Meta": {
+                  "$ref": "#/definitions/TimeSeriesMeta"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error400"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error500"
+            }
+          }
+        }
+      }
+    },
+    "/user/delete": {
+      "delete": {
+        "summary": "Delete an existing user",
+        "description": "This action removes a user from the Node datastore. It does not remove the data generated by the sensors owned by the deleted user.",
+        "tags": [
+          "users"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "User",
+            "description": "the user to delete",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "User": {
+                  "type": "object",
+                  "required": [
+                    "Identifier"
+                  ],
+                  "properties": {
+                    "Identifier": {
+                      "type": "string",
+                      "example": "foobar123"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error400"
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "$ref": "#/definitions/Error404"
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity",
+            "schema": {
+              "$ref": "#/definitions/Error422"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error500"
+            }
+          }
+        }
+      }
+    },
+    "/user/new": {
+      "post": {
+        "summary": "Create a new user",
+        "description": "This action adds a new sensor(s) owner to the Node datastore. When receiving a request the Node will attempt to authenticate the user with the upstream provider to ensure the provided token is correct, return the number of available sensors and will start collecting data generated by the user's sensor(s).",
+        "tags": [
+          "users"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "User",
+            "description": "The user to create",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "User": {
+                  "type": "string",
+                  "example": "foobar123"
+                },
+                "TotalThings": {
+                  "type": "integer",
+                  "example": 3
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error400"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error401"
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity",
+            "schema": {
+              "$ref": "#/definitions/Error422"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error500"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "DataSourceCodes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "example": "Thingful.Connectors.GROWSensors"
+      }
+    },
+    "DataSourceVar": {
+      "type": "object",
+      "description": "an object containing the selected data source variables",
+      "properties": {
+        "DataSourceVariables": {
+          "type": "object",
+          "properties": {
+            "1": {
+              "type": "object",
+              "properties": {
+                "DataSourceVariableId": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "VariableCode": {
+                  "type": "string",
+                  "example": "Thingful.Connectors.GROWSensors.soil_moisture"
+                },
+                "DataSourceCode": {
+                  "type": "string",
+                  "example": "Thingful.Connectors.GROWSensors"
+                },
+                "Name": {
+                  "type": "string",
+                  "example": "Soil Moisture"
+                },
+                "Code": {
+                  "type": "string",
+                  "example": "soil_moisture"
+                },
+                "UnitCode": {
+                  "type": "string",
+                  "example": "%"
+                },
+                "DataType": {
+                  "type": "string",
+                  "example": "Double"
+                },
+                "MathematicalType": {
+                  "type": "string",
+                  "example": "NotSummable"
+                },
+                "MeasurementType": {
+                  "type": "string",
+                  "example": "Instantaneous"
+                },
+                "State": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "IsCumulative": {
+                  "type": "boolean",
+                  "example": false
+                }
+              }
+            },
+            "2": {
+              "type": "object",
+              "properties": {
+                "DataSourceVariableId": {
+                  "type": "integer",
+                  "example": 2
+                },
+                "VariableCode": {
+                  "type": "string",
+                  "example": "Thingful.Connectors.GROWSensors.light"
+                },
+                "DataSourceCode": {
+                  "type": "string",
+                  "example": "Thingful.Connectors.GROWSensors"
+                },
+                "Name": {
+                  "type": "string",
+                  "example": "Light"
+                },
+                "Code": {
+                  "type": "string",
+                  "example": "light"
+                },
+                "UnitCode": {
+                  "type": "string",
+                  "example": "mol/m2/d"
+                },
+                "DataType": {
+                  "type": "string",
+                  "example": "Double"
+                },
+                "MathematicalType": {
+                  "type": "string",
+                  "example": "NotSummable"
+                },
+                "MeasurementType": {
+                  "type": "string",
+                  "example": "Instantaneous"
+                },
+                "State": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "IsCumulative": {
+                  "type": "boolean",
+                  "example": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Error400": {
+      "type": "object",
+      "properties": {
+        "Exception": {
+          "type": "object",
+          "properties": {
+            "Name": {
+              "type": "integer",
+              "description": "the http status code",
+              "example": 400
+            },
+            "Message": {
+              "type": "string",
+              "description": "a brief description of the error occurred",
+              "example": "Unexpected error parsing JSON payload: request body must be valid JSON and well formed"
+            }
+          }
+        }
+      }
+    },
+    "Error401": {
+      "type": "object",
+      "properties": {
+        "Exception": {
+          "type": "object",
+          "properties": {
+            "Name": {
+              "type": "integer",
+              "description": "the http status code",
+              "example": 401
+            },
+            "Message": {
+              "type": "string",
+              "description": "a brief description of the error occurred",
+              "example": "Description of the error"
+            }
+          }
+        }
+      }
+    },
+    "Error404": {
+      "type": "object",
+      "properties": {
+        "Exception": {
+          "type": "object",
+          "properties": {
+            "Name": {
+              "type": "integer",
+              "description": "the http status code",
+              "example": 404
+            },
+            "Message": {
+              "type": "string",
+              "description": "a brief description of the error occurred",
+              "example": "Description of the error"
+            }
+          }
+        }
+      }
+    },
+    "Error422": {
+      "type": "object",
+      "properties": {
+        "Exception": {
+          "type": "object",
+          "properties": {
+            "Name": {
+              "type": "integer",
+              "description": "the http status code",
+              "example": 422
+            },
+            "Message": {
+              "type": "string",
+              "description": "a brief description of the error occurred",
+              "example": "Description of the error"
+            }
+          }
+        }
+      }
+    },
+    "Error500": {
+      "type": "object",
+      "properties": {
+        "Exception": {
+          "type": "object",
+          "properties": {
+            "Name": {
+              "type": "integer",
+              "description": "the http status code",
+              "example": 500
+            },
+            "Message": {
+              "type": "string",
+              "description": "a brief description containing the unique identifier of the error occured. Clients reporting this type of error should include the identifier to facilitate investigation",
+              "example": "Error detail: error-identifier"
+            }
+          }
+        }
+      }
+    },
+    "Location": {
+      "type": "object",
+      "properties": {
+        "Code": {
+          "type": "string",
+          "description": "the short sensor identifier",
+          "example": "zg9xr321"
+        },
+        "DataSourceGroupCode": {
+          "type": "string",
+          "description": "the data source group the sensor belongs to",
+          "example": "Grow.Thingful"
+        },
+        "Identifier": {
+          "type": "string",
+          "description": "the long sensor identifer",
+          "example": "Grow.Thingful#zg9xr321"
+        },
+        "Name": {
+          "type": "string",
+          "description": "the sensor name set by the user",
+          "example": "Parrot Flower Power soil sensor PI040297AA4A030551"
+        },
+        "LocationId": {
+          "type": "number",
+          "example": 115
+        },
+        "ProjectionId": {
+          "type": "integer",
+          "example": 3
+        },
+        "X": {
+          "type": "number",
+          "description": "the sensor longitude",
+          "example": 51.500152
+        },
+        "Y": {
+          "type": "number",
+          "description": "the sensor latitude",
+          "example": -0.126236
+        },
+        "Z": {
+          "type": "number",
+          "description": "the sensor elevation",
+          "example": 0
+        },
+        "FirstSampleTimestamp": {
+          "type": "integer",
+          "description": "the timestamp of the first available measurement in yyyymmddhhmmss format (UTC)",
+          "example": 20170101220841
+        },
+        "LastFetchedSampleTimestamp": {
+          "type": "integer",
+          "description": "the timestamp of the last collected measurement in yyyymmddhhmmss format (UTC)",
+          "example": 20171211153025
+        }
+      }
+    },
+    "Projections": {
+      "type": "object",
+      "description": "the definition of the geographical projection system",
+      "properties": {
+        "3": {
+          "type": "object",
+          "properties": {
+            "ProjectionId": {
+              "type": "integer",
+              "example": 3
+            },
+            "Name": {
+              "type": "string",
+              "example": "WGS84"
+            },
+            "Epsg": {
+              "type": "integer",
+              "example": 4326
+            },
+            "ProjectionString": {
+              "type": "string",
+              "example": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs "
+            }
+          }
+        }
+      }
+    },
+    "TimeSeriesData": {
+      "type": "object",
+      "properties": {
+        "StartDate": {
+          "type": "string",
+          "description": "the timestamp of the beginning of the time range to request data from",
+          "example": "20170329000000"
+        },
+        "EndDate": {
+          "type": "string",
+          "description": "the timestamp of the end of the time range to request data from",
+          "example": "20170401000000"
+        },
+        "LocationIdentifier": {
+          "type": "string",
+          "description": "the long sensor identifier",
+          "example": "Grow.Thingful#9xr321"
+        },
+        "LocationCode": {
+          "type": "string",
+          "description": "the short sensor identifier"
+        },
+        "SensorName": {
+          "type": "string",
+          "description": "the sensor name set by the user",
+          "example": "Parrot Flower Power soil sensor PI040297AA4A030551"
+        },
+        "SerialNumber": {
+          "type": "string",
+          "description": "the unique sensor serial number",
+          "example": "PI040297AA4A030551"
+        },
+        "Data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Value": {
+                "type": "number",
+                "description": "the measurement value",
+                "example": 65.1
+              },
+              "DateTime": {
+                "type": "string",
+                "description": "the timestamp when the value was recorded by the sensor",
+                "example": "20170329010115"
+              },
+              "Availability": {
+                "type": "number",
+                "example": 1
+              },
+              "Quality": {
+                "type": "integer",
+                "example": 0
+              }
+            }
+          }
+        },
+        "DataType": {
+          "type": "string",
+          "description": "the measurement concrete type",
+          "example": "Double"
+        },
+        "VariableCode": {
+          "type": "string",
+          "description": "the measurement data source variable",
+          "example": "Thingful.Connectors.GROWSensors.light"
+        },
+        "DataSourceVariableId": {
+          "type": "integer",
+          "description": "the identifier of the requested data source type",
+          "example": 2
+        },
+        "NoDataValue": {
+          "type": "number",
+          "example": -9999
+        },
+        "CalculationType": {
+          "type": "string",
+          "example": "None"
+        },
+        "Interval": {
+          "type": "object",
+          "properties": {
+            "Type": {
+              "type": "string",
+              "example": "None"
+            },
+            "Value": {
+              "type": "number",
+              "example": 0
+            }
+          }
+        },
+        "TimeZoneOffset": {
+          "type": "string",
+          "example": "+0000"
+        },
+        "IsCumulative": {
+          "type": "boolean",
+          "example": false
+        },
+        "UseQuality": {
+          "type": "boolean",
+          "example": false
+        }
+      }
+    },
+    "TimeSeriesDataReq": {
+      "type": "object",
+      "required": [
+        "Readers"
+      ],
+      "properties": {
+        "Readers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "DataSourceCode",
+              "Settings"
+            ],
+            "properties": {
+              "DataSourceCode": {
+                "type": "string",
+                "description": "the name of the source to query. By defualt it should be set to Thingful.Connectors.GROWSensors",
+                "example": "Thingful.Connectors.GROWSensors"
+              },
+              "Settings": {
+                "type": "object",
+                "required": [
+                  "LocationCodes",
+                  "VariableCodes",
+                  "StartDate",
+                  "EndDate"
+                ],
+                "properties": {
+                  "LocationCodes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "a list of sensors shot identifiers",
+                      "example": "9xr321"
+                    }
+                  },
+                  "VariableCodes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "a list of data source variables to retrieve",
+                      "example": "Thingful.Connectors.GROWSensors.light"
+                    }
+                  },
+                  "StartDate": {
+                    "type": "string",
+                    "description": "the timestamp of the beginning of the time range to request data from",
+                    "example": "20170329000000"
+                  },
+                  "EndDate": {
+                    "type": "string",
+                    "description": "the timestamp of the end of the time range to request data from",
+                    "example": "20170401000000"
+                  },
+                  "Order": {
+                    "type": "string",
+                    "description": "the order by which data samples are returned. By default samples are returned in a descending order. To order them in an ascending order this option must be set to \"asc\"",
+                    "example": "asc"
+                  },
+                  "StructureType": {
+                    "type": "string",
+                    "description": "the type of response. It should default to TimeSeries",
+                    "example": "TimeSeries"
+                  },
+                  "CalculationType": {
+                    "type": "string",
+                    "description": "default to None",
+                    "example": "None"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "TimeSeriesInfo": {
+      "type": "object",
+      "properties": {
+        "TimeSeriesInformations": {
+          "type": "object",
+          "properties": {
+            "11": {
+              "type": "object",
+              "properties": {
+                "TimeSeriesInformationId": {
+                  "type": "integer",
+                  "description": "the metadata object identifier",
+                  "example": 11
+                },
+                "LocationIdentifier": {
+                  "type": "string",
+                  "description": "the sensor identifier",
+                  "example": "Grow.Thingful.9xr321"
+                },
+                "DataSourceVariableId": {
+                  "type": "integer",
+                  "description": "the object data source identifier",
+                  "example": 1
+                },
+                "StartDate": {
+                  "type": "string",
+                  "description": "the timestamp of the first available measurement in yyyymmddhhmmss format (UTC)",
+                  "example": "20170101220841"
+                },
+                "EndDate": {
+                  "type": "string",
+                  "description": "the timestamp of the last available measurement in yyyymmddhhmmss format (UTC)",
+                  "example": "20171211153025"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "TimeSeriesMeta": {
+      "type": "object",
+      "properties": {
+        "Locations": {
+          "type": "object",
+          "description": "the sensor location",
+          "properties": {
+            "9xr321": {
+              "type": "object",
+              "properties": {
+                "Identifier": {
+                  "type": "string",
+                  "description": "the long sensor identifier",
+                  "example": "Grow.Thingful#9xr321"
+                },
+                "Name": {
+                  "type": "string",
+                  "description": "the sensor name",
+                  "example": "Parrot Flower Power soil sensor PI040297AA4A030551"
+                },
+                "DataSourceGroupCode": {
+                  "type": "string",
+                  "example": "Grow.Thingful"
+                },
+                "Code": {
+                  "type": "string",
+                  "description": "the short sensor identifier",
+                  "example": "9xr321"
+                },
+                "X": {
+                  "type": "number",
+                  "description": "the sensor longitude",
+                  "example": -0.084101
+                },
+                "Y": {
+                  "type": "number",
+                  "description": "the sensor latitude",
+                  "example": 51.552338
+                },
+                "Z": {
+                  "type": "number",
+                  "description": "the sensor elevation"
+                },
+                "ProjectionId": {
+                  "type": "integer",
+                  "example": 3
+                }
+              }
+            }
+          }
+        },
+        "Variables": {
+          "$ref": "#/definitions/Variable"
+        },
+        "DataSourceVariables": {
+          "$ref": "#/definitions/DataSourceVar"
+        },
+        "Projections": {
+          "$ref": "#/definitions/Projections"
+        },
+        "Units": {
+          "$ref": "#/definitions/Units"
+        }
+      }
+    },
+    "Units": {
+      "type": "object",
+      "description": "an object containing units of measurements of the selected data source variables",
+      "properties": {
+        "mol/m2/d": {
+          "type": "object",
+          "properties": {
+            "Name": {
+              "type": "string",
+              "description": "the unit name",
+              "example": "mol/m2/d"
+            },
+            "Code": {
+              "type": "string",
+              "description": "the unit code",
+              "example": "mol/m2/d"
+            }
+          }
+        }
+      }
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "User": {
+          "type": "object",
+          "required": [
+            "Identifier",
+            "AccessToken"
+          ],
+          "properties": {
+            "Identifier": {
+              "type": "string",
+              "description": "the user unique identifier",
+              "example": "foobar123"
+            },
+            "Provider": {
+              "type": "string",
+              "description": "the name of the upstream data provider",
+              "example": "parrot"
+            },
+            "AccessToken": {
+              "type": "string",
+              "description": "the opaque string used to identify the user when making data requests against the upstream provider",
+              "example": "wqnD1Vdn9GO8LdRbEEqvcOce18sECKEQeGAptKH78KGPcbxL"
+            },
+            "RefereshToken": {
+              "description": "the optional refresh token used to refresh an expired access token",
+              "type": "string",
+              "example": "8WE7m1vWpt2BT6Q3XLDzqYa6ncLdUCYuv8ZhBhKvdie5rwxX"
+            }
+          }
+        }
+      }
+    },
+    "Variable": {
+      "type": "object",
+      "description": "an object containing the selected data variables identified by their long indentifier",
+      "properties": {
+        "Thingful.Connectors.GROWSensors.light": {
+          "type": "object",
+          "description": "the variable key",
+          "properties": {
+            "State": {
+              "type": "integer",
+              "example": 1
+            },
+            "Name": {
+              "type": "string",
+              "description": "the variable short identifier",
+              "example": "Light"
+            },
+            "Code": {
+              "type": "string",
+              "description": "the variable long identifier",
+              "example": "Thingful.Connectors.GROWSensors.light"
+            },
+            "UnitCode": {
+              "type": "string",
+              "description": "the variable unit of measurement",
+              "example": "mol/m2/d"
+            },
+            "VariableId": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}
